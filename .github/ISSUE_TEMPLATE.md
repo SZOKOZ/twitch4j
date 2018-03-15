@@ -4,7 +4,7 @@
 * [ ] I have attempted to [look for similar issues](https://github.com/PhilippHeuer/twitch4j/issues) already
 
 ### Description
-[Description of the issue]
+<!--[Description of the issue]-->
 
 ### Steps to Reproduce
 1. [First step]
@@ -12,13 +12,13 @@
 
 ...
 
-**Expected behavior:** [What was supposed to happen]
+**Expected behavior:** <!--[What was supposed to happen]-->
 
-**Actual behavior:** [What actually happened]
+**Actual behavior:** <!--[What actually happened]-->
 
-**Stacktrace (if applicable):** [link to the stacktrace]
+**Stacktrace (if applicable):** <!--[link to the stacktrace]-->
 
-**Version affected:** [The version/commit you are using]
+**Version affected:** <!--[The version/commit you are using]-->
 
 ### Additional Information
-[Any other information that may be able to help me with the problem]
+<!--[Any other information that may be able to help me with the problem]-->

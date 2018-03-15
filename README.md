@@ -77,8 +77,9 @@ If you looking for integrations or 3rd party modules check [Trello Board](https:
 ## Getting Started
 Just some simple examples, visit the [WIKI](https://github.com/PhilippHeuer/twitch4j/wiki) for more details.
 
-### Sample Projects using Twitch4J
- - [Chatbot - Twitch4J](https://github.com/PhilippHeuer/twitch4j-chatbot)
+ ### Sample Projects using Twitch4J
+- [Chatbot - Twitch4J](https://github.com/PhilippHeuer/twitch4j-chatbot) by @twitch4j
+- [GUI: Twitch Queue Bot](https://github.com/SirSkaro/twitch-queue-bot) by @SirSkaro
 
 ### Client Builder (Twitch Standalone)
 ```java

@@ -26,4 +26,4 @@ script:
   - ./gradlew test
 
 after_success:
-    - if [[ ! -z $TRAVIS_TAG && $TRAVIS_BRANCH == master ]]; then ./gradlew publish; fi
+    - if [[ ! -z $TRAVIS_TAG && $TRAVIS_BRANCH == master ]]; then ./gradlew bintrayUpload; fi
