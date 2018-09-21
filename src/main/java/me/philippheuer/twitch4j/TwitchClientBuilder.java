@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
 import me.philippheuer.twitch4j.auth.CredentialManager;
 import me.philippheuer.twitch4j.auth.model.OAuthCredential;
+import me.philippheuer.twitch4j.streamlabs.StreamlabsClient;
+
 import org.springframework.util.Assert;
 
 /**
@@ -44,6 +46,11 @@ public class TwitchClientBuilder {
 	 * IRC Credential - Refresh Token
 	 */
 	private String credentialRefreshToken;
+	
+	/**
+	 * Integration: Streamlabs Client
+	 */
+	private StreamlabsClient streamLabsClient;
 
 	/**
 	 * Auto Saving Configuration
@@ -80,6 +87,13 @@ public class TwitchClientBuilder {
 		final TwitchClient client = new TwitchClient(clientId, clientSecret);
 		client.getCredentialManager().provideTwitchClient(client);
 		client.getCredentialManager().setSaveCredentials(autoSaveConfiguration);
+		
+		if (streamLabsClient != null) 
+		{
+			client.setStreamLabsClient(streamLabsClient);
+			client.getCredentialManager().provideStreamlabsClient(client.getStreamLabsClient());
+		}
+		
 		if (configurationDirectory != null) {
 			if (!configurationDirectory.exists()) {
 				configurationDirectory.mkdirs();
