@@ -46,7 +46,7 @@ javadoc {
 dependencies {
 	// Logging
 	compile "org.slf4j:slf4j-api:1.7.25"
-	compile group: 'com.jcabi', 					name: 'jcabi-log', 				version: '0.17.2'
+	//compile group: 'com.jcabi', 					name: 'jcabi-log', 				version: '0.17.2'
 
 	// Spring (RestTemplate)
 	compile "org.springframework:spring-web:5.0.7.RELEASE" 					// contains Tomcat
