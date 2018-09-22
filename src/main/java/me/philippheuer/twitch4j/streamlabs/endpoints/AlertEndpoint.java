@@ -8,6 +8,7 @@ import me.philippheuer.twitch4j.auth.model.OAuthCredential;
 import me.philippheuer.twitch4j.exceptions.RestException;
 import me.philippheuer.util.rest.LoggingRequestInterceptor;
 import me.philippheuer.twitch4j.streamlabs.StreamlabsClient;
+import me.philippheuer.twitch4j.streamlabs.enums.AlertType;
 import me.philippheuer.twitch4j.streamlabs.model.AlertCreate;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -52,12 +53,7 @@ public class AlertEndpoint extends AbstractStreamlabsEndpoint {
 	 * @param soundUrl           The href pointing to a sound resource to play when this alert shows. If an empty string is supplied, no sound will be played.
 	 * @return Success?
 	 */
-	public Boolean createAlert(String type, Optional<String> message, Optional<Integer> duration, Optional<String> special_text_color, Optional<String> imageUrl, Optional<String> soundUrl) {
-		// Validate Parameters
-		if (!Arrays.asList("follow", "subscription", "donation", "host").contains(type)) {
-			throw new RuntimeException("Invalid Type");
-		}
-
+	public Boolean createAlert(AlertType type, Optional<String> message, Optional<Integer> duration, Optional<String> special_text_color, Optional<String> imageUrl, Optional<String> soundUrl) {
 		// Endpoint
 		String requestUrl = String.format("%s/alerts", getStreamlabsClient().getEndpointUrl());
 		RestTemplate restTemplate = getStreamlabsClient().getRestClient().getRestTemplate();
@@ -65,7 +61,7 @@ public class AlertEndpoint extends AbstractStreamlabsEndpoint {
 		// Post Data
 		MultiValueMap<String, Object> postBody = new LinkedMultiValueMap<String, Object>();
 		postBody.add("access_token", getOAuthCredential().getToken());
-		postBody.add("type", type);
+		postBody.add("type", type.toString());
 		postBody.add("message", message.orElse(""));
 		postBody.add("duration", duration.orElse(10).toString());
 		postBody.add("special_text_color", special_text_color.orElse(""));
@@ -89,8 +85,186 @@ public class AlertEndpoint extends AbstractStreamlabsEndpoint {
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-
+		
 		return null;
+	}
+	
+	public Boolean createAlert(AlertType type, String message, int duration)
+	{
+		return createAlert(type, Optional.ofNullable(message), Optional.of(duration), 
+				Optional.ofNullable(null), Optional.ofNullable(null), Optional.ofNullable(null));
+	}
+	
+	public Boolean createAlert(AlertType type, String message, int duration, String color)
+	{
+		return createAlert(type, Optional.ofNullable(message), Optional.of(duration), 
+				Optional.ofNullable(color), Optional.ofNullable(null), Optional.ofNullable(null));
+	}
+	
+	
+	/**
+	 * Endpoint: Send Test Alert
+	 * Trigger a test alert for the authenticated user.
+	 * Requires Scope: alerts.write
+	 * 
+	 * @param type    AlertType Enum. This parameter determines which alert box this alert will show up in.
+	 * @return        A boolean depending on the success of the request. Null if an error occurred.
+	 */
+	public Boolean createTestAlert(AlertType type)
+	{
+		// Endpoint
+		String requestUrl = String.format("%s/alerts/show_video", getStreamlabsClient().getEndpointUrl());
+		RestTemplate restTemplate = getStreamlabsClient().getRestClient().getRestTemplate();
+
+		// Post Data
+		MultiValueMap<String, Object> postBody = new LinkedMultiValueMap<String, Object>();
+		postBody.add("access_token", getOAuthCredential().getToken());
+		postBody.add("type", type.toString());
+		restTemplate.getInterceptors().add(new LoggingRequestInterceptor());
+
+		// REST Request
+		try 
+		{
+			AlertCreate responseObject = restTemplate.postForObject(requestUrl, postBody, AlertCreate.class);
+			log.debug("Streamlabs: Created Test Alert for %s", getOAuthCredential().getDisplayName());
+
+			return responseObject.getSuccess();
+		} 
+		catch (RestException restException) 
+		{
+			log.error("RestException: " + restException.getRestError().toString());
+			log.trace(ExceptionUtils.getStackTrace(restException));
+		} 
+		catch (Exception ex) 
+		{
+			ex.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+	
+	/**
+	 * A true copy pasta master knows how to copy paste efficiently.
+	 */
+	private Boolean AlertFactory(String endpointPath)
+	{
+		//Copy Paste Master at work.
+		// Endpoint
+		String requestUrl = String.format("%s/alerts/%s", endpointPath, getStreamlabsClient().getEndpointUrl());
+		RestTemplate restTemplate = getStreamlabsClient().getRestClient().getRestTemplate();
+
+		// Post Data
+		MultiValueMap<String, Object> postBody = new LinkedMultiValueMap<String, Object>();
+		postBody.add("access_token", getOAuthCredential().getToken());
+		restTemplate.getInterceptors().add(new LoggingRequestInterceptor());
+
+		// REST Request
+		try {
+			AlertCreate responseObject = restTemplate.postForObject(requestUrl, postBody, AlertCreate.class);
+			log.debug("Streamlabs: Alert Action %s for %s", endpointPath, getOAuthCredential().getDisplayName());
+
+			return responseObject.getSuccess();
+		} catch (RestException restException) {
+			//Logger.error(this, "RestException: " + restException.getRestError().toString());
+			log.error("RestException: " + restException.getRestError().toString());
+			log.trace(ExceptionUtils.getStackTrace(restException));
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+	
+	/**
+	 * Endpoint: Skip Alert
+	 * Skips current displayed alert.
+	 * Requires Scope: alerts.write
+	 * 
+	 * @return    A boolean depending on the success of the request. Null if an error occurred.
+	 */
+	public Boolean skipAlert()
+	{
+		return AlertFactory("skip");
+	}
+	
+	
+	/**
+	 * Endpoint: Mute Alert Volume
+	 * Mute volume of current alert.
+	 * Requires Scope: alerts.write
+	 * 
+	 * @return    A boolean depending on the success of the request. Null if an error occurred.
+	 */
+	public Boolean muteVolume()
+	{
+		return AlertFactory("mute_volume");
+	}
+	
+	
+	/**
+	 * Endpoint: Unmute Alert Volume
+	 * Unmute volume of alert.
+	 * Requires Scope: alerts.write
+	 * 
+	 * @return    A boolean depending on the success of the request. Null if an error occurred.
+	 */
+	public Boolean unmuteVolume()
+	{
+		return AlertFactory("unmute_volume");
+	}
+	
+	
+	/**
+	 * Endpoint: Pause Alerts
+	 * Pause alerts from displaying on stream.
+	 * Requires Scope: alerts.write
+	 * 
+	 * @return    A boolean depending on the success of the request. Null if an error occurred.
+	 */
+	public Boolean pauseQueue()
+	{
+		return AlertFactory("pause_queue");
+	}
+	
+	
+	/**
+	 * Endpoint: Unpause Alert
+	 * Resumes alerts displaying on stream.
+	 * Requires Scope: alerts.write
+	 * 
+	 * @return    A boolean depending on the success of the request. Null if an error occurred.
+	 */
+	public Boolean unpauseQueue()
+	{
+		return AlertFactory("unpause_queue");
+	}
+	
+	
+	/**
+	 * Endpoint: Show Video
+	 * Not sure what this does. I think it redisplays media items such as gifs or webms on alerts.
+	 * Requires Scope: alerts.write
+	 * 
+	 * @return    A boolean depending on the success of the request. Null if an error occurred.
+	 */
+	public Boolean showVideo()
+	{
+		return AlertFactory("show_video");
+	}
+	
+	
+	/**
+	 * Endpoint: Hide Video
+	 * Probably removes media such as gifs or webms from alerts.
+	 * Requires Scope: alerts.write
+	 * 
+	 * @return    A boolean depending on the success of the request. Null if an error occurred.
+	 */
+	public Boolean hideVideo()
+	{
+		return AlertFactory("hide_video");
 	}
 
 }

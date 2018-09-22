@@ -29,6 +29,11 @@ public class OAuthStreamlabs {
 	 * CredentialManager
 	 */
 	private CredentialManager credentialManager;
+	
+	/**
+	 * OAuthCredential if available
+	 */
+	private OAuthCredential streamlabsOAuth = null;
 
 	/**
 	 * Redirect KEY
@@ -97,6 +102,7 @@ public class OAuthStreamlabs {
 
 	/**
 	 * Handle Authentication Response
+	 * Will create and save an oauthcredential object for this streamlabs client. Can later be access by getter.
 	 *
 	 * @param authenticationCode The oauth token that will be used to access the api.
 	 * @return OAuthCredential
@@ -112,10 +118,15 @@ public class OAuthStreamlabs {
 			credential.setToken(responseObject.getAccessToken());
 			credential.setRefreshToken(responseObject.getRefreshToken());
 
+			/*
+			 * Tokens no longer expire on streamlabs.
+			 * Edit: Well guess focking what, it's not even added to credential manager. So no point commenting this out...
+			 * Project needs 
 			// Set Token Expiry Date
 			Calendar calendar = Calendar.getInstance();
 			calendar.add(Calendar.SECOND, 3600);
 			credential.setTokenExpiresAt(calendar);
+			*/
 
 			// Streamlabs - Get User Id
 			Optional<User> user = getCredentialManager().getStreamlabsClient().getUserEndpoint(credential).getUser();
@@ -124,7 +135,8 @@ public class OAuthStreamlabs {
 				credential.setUserName(user.get().getName());
 				credential.setDisplayName(user.get().getDisplayName());
 			}
-
+			
+			streamlabsOAuth = credential;
 			return credential;
 
 		} catch (Exception ex) {
