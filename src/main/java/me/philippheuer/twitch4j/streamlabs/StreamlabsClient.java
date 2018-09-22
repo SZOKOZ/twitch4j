@@ -18,6 +18,9 @@ import java.util.List;
 
 @Getter
 @Setter
+/*
+ * TODO: Overhaul.
+ */
 public class StreamlabsClient {
 
 	/**

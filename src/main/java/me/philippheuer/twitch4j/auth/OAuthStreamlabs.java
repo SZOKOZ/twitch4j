@@ -23,6 +23,9 @@ import java.util.stream.Collectors;
 
 @Getter
 @Setter
+/*
+ * TODO: Overhaul.
+ */
 public class OAuthStreamlabs {
 
 	/**
@@ -120,13 +123,12 @@ public class OAuthStreamlabs {
 
 			/*
 			 * Tokens no longer expire on streamlabs.
-			 * Edit: Well guess focking what, it's not even added to credential manager. So no point commenting this out...
-			 * Project needs 
+			 * Edit: Streamlabs credential is not even added to credential manager. So no point commenting this out...
+			 * */
 			// Set Token Expiry Date
 			Calendar calendar = Calendar.getInstance();
 			calendar.add(Calendar.SECOND, 3600);
 			credential.setTokenExpiresAt(calendar);
-			*/
 
 			// Streamlabs - Get User Id
 			Optional<User> user = getCredentialManager().getStreamlabsClient().getUserEndpoint(credential).getUser();
