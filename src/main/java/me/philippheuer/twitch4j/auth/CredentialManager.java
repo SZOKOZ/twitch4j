@@ -16,6 +16,7 @@ import me.philippheuer.twitch4j.auth.model.OAuthCredential;
 import me.philippheuer.twitch4j.auth.model.OAuthRequest;
 import me.philippheuer.twitch4j.events.event.system.AuthTokenExpiredEvent;
 import me.philippheuer.twitch4j.model.Token;
+import me.philippheuer.twitch4j.streamlabs.StreamlabsClient;
 import net.jodah.expiringmap.ExpirationPolicy;
 import net.jodah.expiringmap.ExpiringMap;
 
@@ -43,6 +44,11 @@ public class CredentialManager {
 	 * Holds the Twitch Instance
 	 */
 	private TwitchClient twitchClient;
+	
+	/**
+	 * Holds the Twitch Instance
+	 */
+	private StreamlabsClient streamlabsClient;
 
 	/**
 	 * OAuth Response Listener
@@ -53,6 +59,11 @@ public class CredentialManager {
 	 * OAuth - Twitch
 	 */
 	private OAuthTwitch oAuthTwitch;
+	
+	/**
+	 * OAuth - Streamlabs
+	 */
+	private OAuthStreamlabs oAuthStreamlabs;
 
 	/**
 	 * A map that stores all current requests.
@@ -133,6 +144,19 @@ public class CredentialManager {
 
 		// Register OAuthTwitch to get Events
 		getTwitchClient().getDispatcher().registerListener(getOAuthTwitch());
+	}
+	
+	/**
+	 * Provides the CredentialManager with the Streamlabs Context.
+	 *
+	 * @param streamlabsClient The Streamlabs Client.
+	 */
+	public void provideStreamlabsClient(StreamlabsClient streamlabsClient) {
+		setStreamlabsClient(streamlabsClient);
+		setOAuthStreamlabs(new OAuthStreamlabs(this));
+
+		// Register OAuthStreamlabs to get Events
+		getTwitchClient().getDispatcher().registerListener(getOAuthStreamlabs());
 	}
 
 	/**
@@ -276,7 +300,7 @@ public class CredentialManager {
 		}
 
 		// Try to load configuration
-		loadFromFile();
+		//loadFromFile();
 	}
 
 	private void saveToFile() {
