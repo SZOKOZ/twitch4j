@@ -3,6 +3,8 @@ package me.philippheuer.twitch4j.auth;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 import lombok.Getter;
 import lombok.Setter;
 import me.philippheuer.twitch4j.auth.model.OAuthCredential;
@@ -49,7 +51,7 @@ public class OAuthTwitch {
 		// Store Request Information / Generate Token
 		OAuthRequest request = new OAuthRequest();
 		request.setType(type);
-		request.getOAuthScopes().addAll(Arrays.asList(twitchScopes));
+		request.getOAuthScopes().addAll(Arrays.stream(twitchScopes).map(e -> e.toString()).collect(Collectors.toList()));
 		getCredentialManager().getOAuthRequestCache().put(request.getTokenId(), request);
 
 		// Get OAuthTwitch URI
