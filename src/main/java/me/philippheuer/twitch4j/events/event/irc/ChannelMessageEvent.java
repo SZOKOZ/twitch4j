@@ -23,22 +23,16 @@ public class ChannelMessageEvent extends AbstractChannelEvent {
 
 	/**
 	 * User
-	 * 
-	 * @return The User object of the author of the message event.
 	 */
 	private User user;
 
 	/**
 	 * Message
-	 * 
-	 * @return The plain text message of the message event.
 	 */
 	private String message;
 
 	/**
 	 * Permissions of the user
-	 * 
-	 * @return Set containing CommandPermissions of the author of the message event. See CommandPermissions for more info.
 	 */
 	private Set<CommandPermission> permissions;
 

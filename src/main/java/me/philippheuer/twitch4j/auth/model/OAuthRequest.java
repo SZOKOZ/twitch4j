@@ -9,7 +9,7 @@ import java.util.UUID;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-//import me.philippheuer.twitch4j.enums.Scope;;
+import me.philippheuer.twitch4j.enums.Scope;
 
 @Data
 @Getter
@@ -18,7 +18,7 @@ import lombok.Setter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OAuthRequest {
 
-	private final Set<String> oAuthScopes = new HashSet<String>();
+	private final Set<Scope> oAuthScopes = new HashSet<>();
 	private String tokenId;
 	private String type;
 

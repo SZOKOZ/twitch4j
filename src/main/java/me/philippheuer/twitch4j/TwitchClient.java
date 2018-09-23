@@ -32,7 +32,6 @@ import me.philippheuer.twitch4j.model.Team;
 import me.philippheuer.twitch4j.model.User;
 import me.philippheuer.twitch4j.model.Video;
 import me.philippheuer.twitch4j.modules.ModuleLoader;
-import me.philippheuer.twitch4j.streamlabs.StreamlabsClient;
 import me.philippheuer.util.rest.HeaderRequestInterceptor;
 import me.philippheuer.util.rest.RestClient;
 
@@ -70,11 +69,6 @@ public class TwitchClient {
 	 * Twitch IRC Client
 	 */
 	private final MessageInterface messageInterface = new MessageInterface(this);
-	
-	/**
-	 * Integration: Streamlabs Client
-	 */
-	private StreamlabsClient streamLabsClient;
 
 	/**
 	 * Twitch API Version
