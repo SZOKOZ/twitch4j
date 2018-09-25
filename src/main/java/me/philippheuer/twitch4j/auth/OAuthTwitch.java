@@ -122,7 +122,8 @@ public class OAuthTwitch {
 				credential.setUserName(token.getUserName());
 				credential.setDisplayName(token.getUserName());
 			}
-
+			
+			getCredentialManager().addTwitchCredential("AUTH", credential);
 			return credential;
 
 		} catch (Exception ex) {

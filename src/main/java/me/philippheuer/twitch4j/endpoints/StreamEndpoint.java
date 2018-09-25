@@ -159,7 +159,8 @@ public class StreamEndpoint extends AbstractTwitchEndpoint {
 	public List<Stream> getFollowed(OAuthCredential credential) {
 
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.USER_READ);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.USER_READ);
 
 			// Endpoint
 			RestTemplate restTemplate = this.restTemplate;

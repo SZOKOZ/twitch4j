@@ -1,24 +1,18 @@
-package me.philippheuer.twitch4j.auth.model.twitch;
+package me.philippheuer.twitch4j.streamlabs.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import java.util.List;
 import lombok.Data;
 
 @Data
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Authorize {
+public class StreamlabsAuthorize {
 
 	private String accessToken;
-
-	private String refreshToken;
-
-	private Long expiresIn;
-
-	private List<String> scope;
 	
 	private String tokenType;
-
+	
+	private String refreshToken;
 }

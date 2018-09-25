@@ -1,10 +1,19 @@
 package me.philippheuer.twitch4j;
 
+import java.awt.Desktop;
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Calendar;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.Singular;
 import me.philippheuer.twitch4j.auth.CredentialManager;
+import me.philippheuer.twitch4j.auth.OAuthServer;
+import me.philippheuer.twitch4j.auth.model.OAuthCredential;
+import me.philippheuer.twitch4j.auth.model.twitch.Authorize;
 import me.philippheuer.twitch4j.endpoints.ChannelEndpoint;
 import me.philippheuer.twitch4j.endpoints.ChannelFeedEndpoint;
 import me.philippheuer.twitch4j.endpoints.ChatEndpoint;
@@ -19,7 +28,11 @@ import me.philippheuer.twitch4j.endpoints.TeamEndpoint;
 import me.philippheuer.twitch4j.endpoints.UnofficialEndpoint;
 import me.philippheuer.twitch4j.endpoints.UserEndpoint;
 import me.philippheuer.twitch4j.endpoints.VideoEndpoint;
+import me.philippheuer.twitch4j.enums.Scope;
 import me.philippheuer.twitch4j.events.EventDispatcher;
+import me.philippheuer.twitch4j.events.EventSubscriber;
+import me.philippheuer.twitch4j.events.event.system.ApplicationAuthorizationEvent;
+import me.philippheuer.twitch4j.events.event.system.AuthTokenExpiredEvent;
 import me.philippheuer.twitch4j.message.MessageInterface;
 import me.philippheuer.twitch4j.message.commands.CommandHandler;
 import me.philippheuer.twitch4j.message.irc.listener.IRCEventListener;
@@ -65,6 +78,13 @@ public class TwitchClient {
 	 * RestClient to build the rest requests
 	 */
 	private final RestClient restClient = new RestClient();
+	
+	
+	/**
+	 * Server to manage Authorisation Code Flow for Twitch.
+	 */
+	private OAuthServer twitchOAuthServer;
+	
 
 	/**
 	 * Twitch IRC Client
@@ -75,6 +95,11 @@ public class TwitchClient {
 	 * Integration: Streamlabs Client
 	 */
 	private StreamlabsClient streamLabsClient;
+	public void SetStreamlabsClient(StreamlabsClient streamLabsClient)
+	{
+		this.streamLabsClient = streamLabsClient;
+		streamLabsClient.SetDispatcher(dispatcher);
+	}
 
 	/**
 	 * Twitch API Version
@@ -93,6 +118,20 @@ public class TwitchClient {
 	 */
 	@Singular
 	private String clientSecret;
+	
+	
+	/**
+	 * Authentication endpoint.
+	 */
+	private final String authEndpointUri = "https://id.twitch.tv/oauth2/authorize";
+	
+	
+	/**
+	 * Redirect URI for TwitchClient.
+	 */
+	private final String twitchRedirectUri = "http://127.0.0.1:7090/oauth_authorize_twitch";
+	private final int twitchRedirectUriPort = 7090;
+	private final String twitchRedirectUriContext = "oauth_authorize_twitch";
 
 	/**
 	 * Configuration Directory to save settings
@@ -125,6 +164,9 @@ public class TwitchClient {
 
 		// Provide Instance of TwitchClient to CredentialManager
 		credentialManager.setTwitchClient(this);
+		
+		//Authorization Code Flow Event Listener
+		dispatcher.registerListener(this);
 
 		// EventSubscribers
 		// - Commands
@@ -135,18 +177,107 @@ public class TwitchClient {
 		restClient.putRestInterceptor(new HeaderRequestInterceptor("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"));
 		restClient.putRestInterceptor(new HeaderRequestInterceptor("Accept", "application/vnd.twitchtv.v5+json"));
 		restClient.putRestInterceptor(new HeaderRequestInterceptor("Client-ID", getClientId()));
+		
+		// Start Internal OAuthServer for application authorisation.
+		twitchOAuthServer = new OAuthServer(twitchRedirectUriPort, twitchRedirectUriContext, dispatcher);
 	}
+	
+	
+	/**
+	 * Event Callback for Application Authorisation by user.
+	 * @param event
+	 */
+	@EventSubscriber
+	public void onTwitchAuthCode(ApplicationAuthorizationEvent event)
+	{
+		String code = event.getCodeIfPresent();
+		System.out.println(code);
+		if (code == null)
+		{
+			//Set some kinda state.
+			return;
+		}
+		
+		//TODO: Add OAuth to credential manager.
+		credentialManager.addTwitchCredential("AUTH", event.getOAuth(this));
+		connect();
+	}
+	
+	
+	/**
+	 * Event that gets triggered when a twitch token has expired.
+	 * <p>
+	 -
+	 * This event get triggered when a token has expired, a new token
+	 * will be requested using the refresh token.
+	 *
+	 * @param event The Event, containing the credential and all other related information.
+	 */
+	@EventSubscriber
+	public void onTokenExpired(AuthTokenExpiredEvent event) //Partly borrowed from OAuthTwitch class
+	{
+		if(event.getCredential().getType().equals("twitch")) {
+			OAuthCredential credential = event.getCredential();
 
+			// Rest Request to get refreshed token details
+			Authorize responseObject = credentialManager.getTwitchClient().getKrakenEndpoint()
+					.getOAuthToken("refresh_token", twitchRedirectUri, credential.getRefreshToken()).get();
+
+			// Save Response
+			credential.setToken(responseObject.getAccessToken());
+			credential.setRefreshToken(responseObject.getRefreshToken());
+
+			// Set Token Expiry Date
+			Calendar calendar = Calendar.getInstance();
+			calendar.add(Calendar.SECOND, responseObject.getExpiresIn().intValue());
+			credential.setTokenExpiresAt(calendar);
+
+			// Credential was modified.
+			credentialManager.onCredentialChanged();
+		}
+	}
 	/**
 	 * Connect to other related services.
 	 * <p>
 	 * This methods opens the connection to the twitch irc server and the pubsub endpoint.
 	 * Connect needs to be called after initalizing the {@link CredentialManager}.
+	 * @deprecated Use authAndConnect() method or TwitchClientBuilder.connect().
 	 */
+	@Deprecated
 	public void connect() {
 		getMessageInterface().connect();
 	}
 
+	
+	/**
+	 * Starts the authentication process for this client.
+	 * Will connect to the necessary services once authentication is complete.
+	 * @param scope    The permissions this client requires.
+	 */
+	public void authAndConnect(Scope... scope)
+	{
+		String authUri = 
+				String.format("%s?client_id=%s&redirect_uri=%s&response_type=code&scope=%s", 
+				authEndpointUri, clientId, twitchRedirectUri, Scope.join(scope));
+		Desktop desktop = java.awt.Desktop.getDesktop();
+		URI uri;
+		try 
+		{
+			uri = new URI(authUri);
+			desktop.browse(uri);
+		} 
+		catch (URISyntaxException e) 
+		{
+			e.printStackTrace();
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
+		  
+	}
+	
+	
 	/**
 	 * Disconnect from other related services.
 	 * <p>

@@ -3,17 +3,21 @@ package me.philippheuer.twitch4j.auth;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import me.philippheuer.twitch4j.TwitchClient;
 import me.philippheuer.twitch4j.auth.model.OAuthCredential;
 import me.philippheuer.twitch4j.auth.model.OAuthRequest;
+import me.philippheuer.twitch4j.enums.Scope;
 import me.philippheuer.twitch4j.events.event.system.AuthTokenExpiredEvent;
 import me.philippheuer.twitch4j.model.Token;
 import me.philippheuer.twitch4j.streamlabs.StreamlabsClient;
@@ -173,7 +177,9 @@ public class CredentialManager {
 		credential.setUserName(token.getUserName());
 		credential.setDisplayName(token.getUserName());
 		if(token.getAuthorization() != null)  {
-			credential.getOAuthScopes().addAll(token.getAuthorization().getScopes());
+			//Arrays.stream(twitchScopes).map(e -> e.toString()).collect(Collectors.toList())
+			credential.getOAuthScopes().addAll(Arrays.stream(token.getAuthorization().getScopes().toArray(new Scope[0]))
+					.map(e -> e.toString()).collect(Collectors.toList()));
 		}
 
 		// OAuthCredential Prefix

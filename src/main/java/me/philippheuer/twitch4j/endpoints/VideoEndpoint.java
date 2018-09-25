@@ -1,5 +1,6 @@
 package me.philippheuer.twitch4j.endpoints;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -115,7 +116,8 @@ public class VideoEndpoint extends AbstractTwitchEndpoint {
 	 */
 	public List<Video> getFollowedVideos(OAuthCredential credential, @Nullable Integer limit, @Nullable Integer offset, @Nullable BroadcastType broadcastType, @Nullable List<Locale> language, @Nullable VideoSort sort) {
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.USER_READ);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.USER_READ);
 
 			// Endpoint
 			RestTemplate restTemplate = this.restTemplate;

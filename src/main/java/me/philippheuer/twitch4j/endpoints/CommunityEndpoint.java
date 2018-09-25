@@ -1,9 +1,12 @@
 package me.philippheuer.twitch4j.endpoints;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
+
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import me.philippheuer.twitch4j.TwitchClient;
@@ -100,7 +103,8 @@ public class CommunityEndpoint extends AbstractTwitchEndpoint {
 	 */
 	public Boolean updateCommunity(OAuthCredential credential, String id, @Nullable String summary, @Nullable String description, @Nullable String rules, @Nullable String email) {
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.COMMUNITIES_EDIT);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.COMMUNITIES_EDIT);
 
 			// Endpoint
 			String requestUrl = String.format("/communities/%s", id);
@@ -201,7 +205,8 @@ public class CommunityEndpoint extends AbstractTwitchEndpoint {
 
 	public BannedCommunityUsers getCommunityBannedUsers(OAuthCredential credential, String id, @Nullable Integer limit, @Nullable String cursor) {
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.COMMUNITIES_MODERATE);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.COMMUNITIES_MODERATE);
 
 			// Endpoint
 			String requestUrl = String.format("/communities/%s/bans", id);
@@ -231,7 +236,8 @@ public class CommunityEndpoint extends AbstractTwitchEndpoint {
 
 	public Boolean banCommunityUser(OAuthCredential credential, String id, Long userId) {
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.COMMUNITIES_MODERATE);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.COMMUNITIES_MODERATE);
 
 			// Endpoint
 			String requestUrl = String.format("/communities/%s/bans/%s", id, userId);
@@ -255,7 +261,8 @@ public class CommunityEndpoint extends AbstractTwitchEndpoint {
 
 	public Boolean unbanCommunityUser(OAuthCredential credential, String id, Long userId) {
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.COMMUNITIES_MODERATE);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.COMMUNITIES_MODERATE);
 
 			// Endpoint
 			String requestUrl = String.format("/communities/%s/bans/%s", id, userId);

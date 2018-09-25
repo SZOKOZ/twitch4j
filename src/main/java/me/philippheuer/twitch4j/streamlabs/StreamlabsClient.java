@@ -4,7 +4,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.Singular;
+import me.philippheuer.twitch4j.auth.OAuthServer;
 import me.philippheuer.twitch4j.auth.model.OAuthCredential;
+import me.philippheuer.twitch4j.events.EventDispatcher;
+import me.philippheuer.twitch4j.events.EventSubscriber;
+import me.philippheuer.twitch4j.events.event.system.ApplicationAuthorizationEvent;
 import me.philippheuer.twitch4j.streamlabs.endpoints.TokenEndpoint;
 import me.philippheuer.util.rest.HeaderRequestInterceptor;
 import me.philippheuer.util.rest.RestClient;
@@ -31,10 +35,37 @@ public class StreamlabsClient {
 	 * Streamlabs API Version
 	 */
 	public final String streamlabsEndpointVersion = "v1.0";
+	
+	/**
+	 * Redirect URI for StreamlabsClient.
+	 */
+	private final String steamlabsRedirectUri = "http://127.0.0.1:7090/oauth_authorize_streamlabs";
+	
 	/**
 	 * Rest Client
 	 */
 	private RestClient restClient = new RestClient();
+	
+	/**
+	 * Service to dispatch Events
+	 */
+	private EventDispatcher dispatcher;
+	public void SetDispatcher(EventDispatcher dispatcher)
+	{
+		this.dispatcher = dispatcher;
+		dispatcher.registerListener(this);
+	}
+	
+	/**
+	 * Server to manage Authorisation Code Flow for Streamlabs.
+	 */
+	private OAuthServer streamlabsOAuthServer;
+	
+	/**
+	 * Contains the OAuth information for this client.
+	 */
+	private OAuthCredential OAuth;
+	
 	/**
 	 * Streamlabs Client Id
 	 */
@@ -88,7 +119,7 @@ public class StreamlabsClient {
 
 		setClientId(clientId);
 		setClientSecret(clientSecret);
-
+		
 		// Initialize REST Client
 		// - Valid User Agent, because Cloudflare is between us and the api.
 		getRestClient().putRestInterceptor(new HeaderRequestInterceptor("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.85 Safari/537.36"));
@@ -114,6 +145,25 @@ public class StreamlabsClient {
 		return streamlabsClient;
 	}
 
+	
+	/**
+	 * Event Callback for Application Authorisation by the user.
+	 * @param event
+	 */
+	@EventSubscriber
+	private void onStreamLabsAuthCode(ApplicationAuthorizationEvent event)
+	{
+		String code = event.getCodeIfPresent();
+		if (code == null)
+		{
+			//Set some kinda state.
+			return;
+		}
+		
+		OAuth = event.getOAuth(this);
+	}
+	
+	
 	/**
 	 * Get the full api endpoint address.
 	 *

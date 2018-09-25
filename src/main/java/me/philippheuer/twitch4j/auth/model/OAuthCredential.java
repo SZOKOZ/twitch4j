@@ -30,7 +30,7 @@ public class OAuthCredential {
 
 	private String refreshToken;
 
-	private final Set<Scope> oAuthScopes = new LinkedHashSet<>();
+	private final Set<String> oAuthScopes = new LinkedHashSet<>();
 
 	private Long userId;
 

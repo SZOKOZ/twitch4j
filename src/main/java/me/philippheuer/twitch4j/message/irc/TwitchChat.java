@@ -236,11 +236,18 @@ public class TwitchChat {
 				setConnectionState(TMIConnectionState.CONNECTING);
 
 				// Get Credential from CredentialManager
-				credential = twitchClient.getCredentialManager().getTwitchCredentialsForIRC();
-				Assert.isTrue(credential.isPresent(), "No valid IRC Credential!");
+				credential = twitchClient.getCredentialManager().getTwitchCredentialsForCustomKey("AUTH");
+				if (!credential.isPresent())
+				{
+					credential = twitchClient.getCredentialManager().getTwitchCredentialsForIRC();
+					Assert.isTrue(credential.isPresent(), "No valid IRC Credential!");
+				}
 
 				// Recreate Socket if state does not equal CREATED
-				createWebSocket();
+				if (this.ws == null)
+				{
+					createWebSocket();
+				}
 
 				// Connect to IRC WebSocket
 				this.ws.connect();
@@ -279,7 +286,7 @@ public class TwitchChat {
 		// CleanUp
 		this.ws.clearListeners();
 		this.ws.disconnect();
-		this.ws = null;
+		//this.ws = null; How dare you.
 
 		wsLock.unlock();
 	}
@@ -458,7 +465,7 @@ public class TwitchChat {
 		if(credential == null) {
 			return new AbstractMap.SimpleEntry<>(false, "Twitch IRC Credentials not present!");
 		} else {
-			if(!credential.getOAuthScopes().contains(Scope.CHAT_LOGIN)) {
+			if(!credential.getOAuthScopes().contains(Scope.CHAT_LOGIN.toString())) {
 				return new AbstractMap.SimpleEntry<>(false, "Twitch IRC Credentials are missing the CHAT_LOGIN Scope! Please fix the permissions in your oauth request!");
 			}
 		}

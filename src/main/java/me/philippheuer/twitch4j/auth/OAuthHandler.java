@@ -82,9 +82,9 @@ public class OAuthHandler {
 										if (credential != null) {
 											// Add requested Scopes to credential (separated by space when more than one is requested)
 											if (responseScope.contains(" ")) {
-												credential.getOAuthScopes().addAll(Arrays.stream(responseScope.split("\\s")).map(Scope::fromString).collect(Collectors.toList()));
+												credential.getOAuthScopes().addAll(Arrays.stream(responseScope.split("\\s")).collect(Collectors.toList()));
 											} else {
-												credential.getOAuthScopes().add(Scope.fromString(responseScope));
+												credential.getOAuthScopes().add(responseScope);
 											}
 
 											// Check for custom key, to store in credential manager

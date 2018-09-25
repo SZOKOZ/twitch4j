@@ -90,7 +90,7 @@ public class TwitchClientBuilder {
 		
 		if (streamLabsClient != null) 
 		{
-			client.setStreamLabsClient(streamLabsClient);
+			client.SetStreamlabsClient(streamLabsClient);
 			client.getCredentialManager().provideStreamlabsClient(client.getStreamLabsClient());
 		}
 		

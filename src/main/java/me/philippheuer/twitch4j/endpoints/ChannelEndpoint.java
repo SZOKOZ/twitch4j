@@ -1,6 +1,7 @@
 package me.philippheuer.twitch4j.endpoints;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -95,7 +96,8 @@ public class ChannelEndpoint extends AbstractTwitchEndpoint {
 	 */
 	public Channel getChannel(OAuthCredential credential) {
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.CHANNEL_READ);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.CHANNEL_READ);
 
 			// Endpoint
 			String requestUrl = "/channel";
@@ -130,7 +132,8 @@ public class ChannelEndpoint extends AbstractTwitchEndpoint {
 	public List<User> getEditors(OAuthCredential credential) {
 		// Endpoint
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.CHANNEL_EDITOR);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.CHANNEL_EDITOR);
 			Channel channel = getChannel(credential);
 			String requestUrl = "/channels/" + channel.getId() + "/editors";
 			RestTemplate restTemplate = this.restTemplate;
@@ -244,7 +247,8 @@ public class ChannelEndpoint extends AbstractTwitchEndpoint {
 	 */
 	public List<Subscription> getSubscriptions(OAuthCredential credential, @Nullable Integer limit, @Nullable Integer offset, @Nullable Sort order) {
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.CHANNEL_SUBSCRIPTIONS);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.CHANNEL_SUBSCRIPTIONS);
 			// Endpoint
 			String requestUrl = String.format("/channels/%s/subscriptions", credential.getUserId());
 			RestTemplate restTemplate = this.restTemplate;
@@ -289,7 +293,8 @@ public class ChannelEndpoint extends AbstractTwitchEndpoint {
 		Objects.requireNonNull(user, "Please provide a User!");
 
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.CHANNEL_SUBSCRIPTIONS);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.CHANNEL_SUBSCRIPTIONS);
 			// Endpoint
 			String requestUrl = String.format("/channels/%s/subscriptions/%s", credential.getUserId(), user.getId());
 			RestTemplate restTemplate = this.restTemplate;
@@ -368,7 +373,8 @@ public class ChannelEndpoint extends AbstractTwitchEndpoint {
 	public Commercial startCommercial(OAuthCredential credential, CommercialType commercialType) {
 
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.CHANNEL_COMMERCIAL);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.CHANNEL_COMMERCIAL);
 
 			String requestUrl = String.format("/channels/%s/commercial", credential.getUserId());
 			RestTemplate restTemplate = this.restTemplate;
@@ -399,7 +405,8 @@ public class ChannelEndpoint extends AbstractTwitchEndpoint {
 	 */
 	public Boolean deleteStreamKey(OAuthCredential credential) {
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.CHANNEL_STREAM);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.CHANNEL_STREAM);
 
 			String requestUrl = String.format("/channels/%s/stream_key", credential.getUserId());
 			RestTemplate restTemplate = this.restTemplate;
@@ -433,7 +440,8 @@ public class ChannelEndpoint extends AbstractTwitchEndpoint {
 
 	public Boolean addCommunity(OAuthCredential credential, List<Community> communities) {
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.CHANNEL_EDITOR);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.CHANNEL_EDITOR);
 
 			String requestUrl = String.format("/channels/%s/communities", credential.getUserId());
 			RestTemplate restTemplate = this.restTemplate;
@@ -456,7 +464,8 @@ public class ChannelEndpoint extends AbstractTwitchEndpoint {
 
 	public Boolean purgeCommunities(OAuthCredential credential) {
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.CHANNEL_EDITOR);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.CHANNEL_EDITOR);
 
 			String requestUrl = String.format("/channels/%s/communities", credential.getUserId());
 			RestTemplate restTemplate = this.restTemplate;

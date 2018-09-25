@@ -7,6 +7,8 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.support.HttpRequestWrapper;
 
+import lombok.Getter;
+
 /**
  * Spring Rest: Header Request Interceptor
  * <p>
@@ -22,6 +24,7 @@ public class HeaderRequestInterceptor implements ClientHttpRequestInterceptor {
 	/**
 	 * Header Key
 	 */
+	@Getter
 	private final String name;
 
 	/**

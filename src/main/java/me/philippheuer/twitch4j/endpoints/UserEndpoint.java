@@ -1,11 +1,14 @@
 package me.philippheuer.twitch4j.endpoints;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import me.philippheuer.twitch4j.TwitchClient;
@@ -147,7 +150,8 @@ public class UserEndpoint extends AbstractTwitchEndpoint {
 	 */
 	public List<Emote> getUserEmotes(OAuthCredential credential) {
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.USER_SUBSCRIPTIONS);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.USER_SUBSCRIPTIONS);
 			// Endpoint
 			String requestUrl = String.format("/users/%s/emotes", credential.getUserId());
 			RestTemplate restTemplate = this.restTemplate;
@@ -183,7 +187,8 @@ public class UserEndpoint extends AbstractTwitchEndpoint {
 	 */
 	public Optional<UserSubscriptionCheck> getUserSubcriptionCheck(OAuthCredential credential, Long channelId) {
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.USER_SUBSCRIPTIONS);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.USER_SUBSCRIPTIONS);
 			// Endpoint
 			String requestUrl = String.format("/users/%s/subscriptions/%s", credential.getUserId(), channelId);
 			RestTemplate restTemplate = this.restTemplate;
@@ -295,7 +300,8 @@ public class UserEndpoint extends AbstractTwitchEndpoint {
 	 */
 	public Boolean followChannel(OAuthCredential credential, Long channelId, @Nullable Boolean notifications) {
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.USER_FOLLOWS_EDIT);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.USER_FOLLOWS_EDIT);
 			// Endpoint
 			String requestUrl = String.format("/users/%s/follows/channels/%s", credential.getUserId(), channelId);
 			RestTemplate restTemplate = this.restTemplate;
@@ -327,7 +333,8 @@ public class UserEndpoint extends AbstractTwitchEndpoint {
 	 */
 	public Boolean unfollowChannel(OAuthCredential credential, Long channelId) {
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.USER_FOLLOWS_EDIT);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.USER_FOLLOWS_EDIT);
 			// Endpoint
 			String requestUrl = String.format("/users/%s/follows/channels/%s", credential.getUserId(), channelId);
 			RestTemplate restTemplate = this.restTemplate;
@@ -359,7 +366,8 @@ public class UserEndpoint extends AbstractTwitchEndpoint {
 	 */
 	public List<Block> getUserBlockList(OAuthCredential credential, @Nullable Integer limit, @Nullable Integer offset) {
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.USER_BLOCKS_READ);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.USER_BLOCKS_READ);
 
 			// Endpoint
 			String requestUrl = String.format("/users/%s/blocks", credential.getUserId());
@@ -400,7 +408,8 @@ public class UserEndpoint extends AbstractTwitchEndpoint {
 	 */
 	public Boolean blockUser(OAuthCredential credential, User user) {
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.USER_BLOCKS_EDIT);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.USER_BLOCKS_EDIT);
 
 			// Endpoint
 			String requestUrl = String.format("/users/%s/blocks/%s", credential.getUserId(), user.getId());
@@ -432,7 +441,8 @@ public class UserEndpoint extends AbstractTwitchEndpoint {
 	 */
 	public Boolean unblockUser(OAuthCredential credential, User user) {
 		try {
-			checkScopePermission(credential.getOAuthScopes(), Scope.USER_BLOCKS_EDIT);
+			checkScopePermission(Arrays.stream(credential.getOAuthScopes().toArray(new String[0]))
+					.map(Scope::fromString).collect(Collectors.toSet()), Scope.USER_BLOCKS_EDIT);
 
 			// Endpoint
 			String requestUrl = String.format("/users/%s/blocks/%s", credential.getUserId(), user.getId());
