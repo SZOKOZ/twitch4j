@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Wither;
 import me.philippheuer.twitch4j.auth.CredentialManager;
 import me.philippheuer.twitch4j.auth.model.OAuthCredential;
+import me.philippheuer.twitch4j.enums.Scope;
 import me.philippheuer.twitch4j.streamlabs.StreamlabsClient;
 
 import org.springframework.util.Assert;
@@ -136,6 +137,13 @@ public class TwitchClientBuilder {
 		Assert.notNull(credential, "You need provide a OAuth Credentials for the Bot. Use: https://twitchapps.com/tmi/ to generate a oauth key.");
 		TwitchClient client = build();
 		client.connect();
+		return client;
+	}
+	
+	public TwitchClient authAndConnect(Scope... scope)
+	{
+		TwitchClient client = build();
+		client.authAndConnect(scope);;
 		return client;
 	}
 }

@@ -31,6 +31,7 @@ import me.philippheuer.util.conversion.UserTypeDeserializer;
 import me.philippheuer.util.conversion.VideoAccessDeserializer;
 import me.philippheuer.util.conversion.VideoTypeDeserializer;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
@@ -102,6 +103,13 @@ public class RestClient {
 	 */
 	public RestTemplate getPlainRestTemplate() {
 		RestTemplate restTemplate = new RestTemplate(Collections.singletonList(new MappingJackson2HttpMessageConverter(getObjectMapper())));
+		
+		/*Default HttpClient cannot access the body of an Unauthorized 401 response
+		 * and will cause rest requests to fail if encountered. ApacheHttpClient can
+		 * handle this just fine however.
+		 */
+		restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory(new HttpClientConfiguration().getHttpClient()));
+		
 		restTemplate.setErrorHandler(new RestErrorHandler());
 
 

@@ -16,12 +16,15 @@ import me.philippheuer.twitch4j.events.event.system.ApplicationAuthorizationEven
  * @author SZOKOZ
  *
  */
+@SuppressWarnings("restriction")
 @Slf4j
 public final class OAuthServer implements HttpHandler
 {
 
-	HttpServer httpserver;
-	EventDispatcher dispatcher;
+	private HttpServer httpserver;
+	private EventDispatcher dispatcher;
+	public static final String DEFAULT_CSRF = "Brinstar";
+	
 	public OAuthServer(int port, String context, EventDispatcher dispatcher)
 	{
 		try 
@@ -53,17 +56,21 @@ public final class OAuthServer implements HttpHandler
 			{
 				authCode = uriQuery.split("&")[0].replace("code=", "");
 				appAuthEvent = new ApplicationAuthorizationEvent(authCode);
+				if (uriQuery.contains("state"))
+				{
+					appAuthEvent.setState(uriQuery.split("&")[2]
+							.replace("state=", ""));
+				}
 			}
 			else
 			{
 				appAuthEvent = new ApplicationAuthorizationEvent(authCode);
-				appAuthEvent.setError(uriQuery.split("&")[0].replace("error=", ""));
+				appAuthEvent.setError(uriQuery.split("&")[1].replace("error=", ""));
 				if (uriQuery.contains("error_description"))
 				{
-					appAuthEvent.setErrorDesc(uriQuery.split("&")[1]
+					appAuthEvent.setErrorDesc(uriQuery.split("&")[2]
 							.replace("error_description=", ""));
 				}
-				
 			}
 			
 		}

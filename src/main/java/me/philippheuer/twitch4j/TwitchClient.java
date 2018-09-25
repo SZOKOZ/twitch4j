@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Calendar;
 
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.Singular;
@@ -47,6 +48,7 @@ import me.philippheuer.twitch4j.model.Video;
 import me.philippheuer.twitch4j.modules.ModuleLoader;
 import me.philippheuer.twitch4j.streamlabs.StreamlabsClient;
 import me.philippheuer.util.rest.HeaderRequestInterceptor;
+import me.philippheuer.util.rest.HttpClientConfiguration;
 import me.philippheuer.util.rest.RestClient;
 
 /**
@@ -173,10 +175,12 @@ public class TwitchClient {
 		dispatcher.registerListener(getCommandHandler());
 		// - IRC Event Listeners
 		dispatcher.registerListener(new IRCEventListener(this));
+		
 		// Initialize REST Client
 		restClient.putRestInterceptor(new HeaderRequestInterceptor("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"));
 		restClient.putRestInterceptor(new HeaderRequestInterceptor("Accept", "application/vnd.twitchtv.v5+json"));
 		restClient.putRestInterceptor(new HeaderRequestInterceptor("Client-ID", getClientId()));
+		restClient.putRestInterceptor(new HeaderRequestInterceptor("ClientSecret", getClientSecret()));
 		
 		// Start Internal OAuthServer for application authorisation.
 		twitchOAuthServer = new OAuthServer(twitchRedirectUriPort, twitchRedirectUriContext, dispatcher);
@@ -195,6 +199,17 @@ public class TwitchClient {
 		if (code == null)
 		{
 			//Set some kinda state.
+			return;
+		}
+		
+		String state = event.getState();
+		if (state == null)
+		{
+			return;
+		}
+		else if (!state.equals(OAuthServer.DEFAULT_CSRF))
+		{
+			System.out.println("CSRF Token mistmatch!");
 			return;
 		}
 		
@@ -257,8 +272,10 @@ public class TwitchClient {
 	public void authAndConnect(Scope... scope)
 	{
 		String authUri = 
-				String.format("%s?client_id=%s&redirect_uri=%s&response_type=code&scope=%s", 
-				authEndpointUri, clientId, twitchRedirectUri, Scope.join(scope));
+				String.format("%s?client_id=%s&redirect_uri=%s&response_type=code"
+						+ "&scope=%s&state=%s", 
+				authEndpointUri, clientId, twitchRedirectUri, 
+				Scope.join(scope), OAuthServer.DEFAULT_CSRF);
 		Desktop desktop = java.awt.Desktop.getDesktop();
 		URI uri;
 		try 

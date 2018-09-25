@@ -50,6 +50,7 @@ dependencies {
 	// Spring (RestTemplate)
 	compile "org.springframework:spring-web:5.0.7.RELEASE" 					// contains Tomcat
 	compile "org.springframework.social:spring-social-core:1.1.6.RELEASE"
+	compile "org.springframework:spring-context:4.1.6.RELEASE"
 
 	// WebSocket Client for Twitch PubSub and Twitch IRC
 	// TODO: Change to Jetty WebSocket
@@ -60,6 +61,9 @@ dependencies {
 	compile "org.apache.commons:commons-lang3:3.7"
 	// - IO
 	compile "commons-io:commons-io:2.6"
+	
+	//Apache HTTP Client to replace Spring's REST dependency on default java HTTP Client.
+	compile 'org.apache.httpcomponents:httpclient:4.5.6'
 
 	// JSON / YAML
 	compile "com.fasterxml.jackson.core:jackson-databind:2.9.6"

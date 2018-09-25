@@ -7,17 +7,21 @@ import me.philippheuer.twitch4j.exceptions.RestException;
 import me.philippheuer.twitch4j.streamlabs.StreamlabsClient;
 import me.philippheuer.twitch4j.auth.model.twitch.Authorize;
 import me.philippheuer.twitch4j.streamlabs.model.StreamlabsAuthorize;
-import me.philippheuer.util.rest.HeaderRequestInterceptor;
 import me.philippheuer.util.rest.LoggingRequestInterceptor;
+import me.philippheuer.util.rest.RestClient;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Optional;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -28,6 +32,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ApplicationAuthorizationEvent extends Event
 {
+	public static final RestClient twitchAuthClient = new RestClient();
+	public static final RestClient streamlabsAuthClient = new RestClient();
+	
 	@Getter
 	@Setter
 	private String error = null;
@@ -36,6 +43,10 @@ public class ApplicationAuthorizationEvent extends Event
 	private String errorDesc = null;
 	
 	private String authorizationCode = null;
+	
+	@Getter
+	@Setter
+	private String state = null;
 	
 	public ApplicationAuthorizationEvent(String authorizationCode)
 	{
@@ -89,27 +100,40 @@ public class ApplicationAuthorizationEvent extends Event
 	{
 		// Endpoint
 		String requestUrl = String.format("%s/token", client.getEndpointUrl());
-		RestTemplate restTemplate = client.getRestClient().getRestTemplate();
+		RestTemplate restTemplate = streamlabsAuthClient.getPlainRestTemplate();
+		
+		if (restTemplate.getInterceptors() == null)
+		{
+			restTemplate.setInterceptors(new ArrayList<ClientHttpRequestInterceptor>());
+		}
 
 		// Post Data
-		MultiValueMap<String, Object> postBody = new LinkedMultiValueMap<String, Object>();
-		postBody.add("grant_type", "authorization_code");
+		MultiValueMap<String, String> postBody = new LinkedMultiValueMap<String, String>();
 		postBody.add("client_id", client.getClientId());
 		postBody.add("client_secret", client.getClientSecret());
 		postBody.add("redirect_uri", "http://127.0.0.1:7090/oauth_authorize_streamlabs");
 		postBody.add("code", authorizationCode);
+		postBody.add("state", state);
+		
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(requestUrl)
+		        // Add query parameter
+		        .queryParams(postBody);
+		log.debug(builder.build().toUriString());
 		restTemplate.getInterceptors().add(new LoggingRequestInterceptor());
 
 		// REST Request
 		try 
 		{
-			StreamlabsAuthorize responseObject = restTemplate.postForObject(requestUrl, postBody, StreamlabsAuthorize.class);
+			ResponseEntity<StreamlabsAuthorize> responseObject = 
+					restTemplate.exchange(builder.build().toUri(), HttpMethod.POST, 
+					null, StreamlabsAuthorize.class);
+			StreamlabsAuthorize responseBody = responseObject.getBody();
 			log.debug("Streamlabs: Attempting to retrieve streamlabs OAuth token.");
 
 			OAuthCredential auth = new OAuthCredential();
-			auth.setToken(responseObject.getAccessToken());
-			auth.setRefreshToken(responseObject.getRefreshToken());
-			auth.setType(responseObject.getTokenType());
+			auth.setToken(responseBody.getAccessToken());
+			auth.setRefreshToken(responseBody.getRefreshToken());
+			auth.setType(responseBody.getTokenType());
 			
 			return auth;
 		} 
@@ -131,18 +155,23 @@ public class ApplicationAuthorizationEvent extends Event
 	public OAuthCredential getOAuth(TwitchClient client)
 	{
 		// Endpoint
-		String requestUrl = String.format("https://id.twitch.tv/oauth2/authorize");
-		RestTemplate restTemplate = client.getRestClient().getRestTemplate();
-
+		String requestUrl = String.format("https://id.twitch.tv/oauth2/token");
+		RestTemplate restTemplate = twitchAuthClient.getPlainRestTemplate();
+		
 		// Post Data
-		MultiValueMap<String, Object> postBody = new LinkedMultiValueMap<String, Object>();
+		MultiValueMap<String, String> postBody = new LinkedMultiValueMap<String, String>();
 		postBody.add("client_id", client.getClientId());
 		postBody.add("client_secret", client.getClientSecret());
 		postBody.add("code", authorizationCode);
 		postBody.add("grant_type", "authorization_code");
 		postBody.add("redirect_uri", client.getTwitchRedirectUri());
-		
+		//postBody.add("state", state);
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(requestUrl)
+		        // Add query parameter
+		        .queryParams(postBody);
+		System.out.println(builder.build().toUriString());
 		restTemplate.getInterceptors().add(new LoggingRequestInterceptor());
+		/*
 		for (ClientHttpRequestInterceptor requestinterceptor: restTemplate.getInterceptors())
 		{
 			if (!(requestinterceptor instanceof HeaderRequestInterceptor))
@@ -158,21 +187,25 @@ public class ApplicationAuthorizationEvent extends Event
 				break;
 			}
 		}
-
+		*/
+		
 		// REST Request
 		try 
 		{
-			Authorize responseObject = restTemplate.postForObject(requestUrl, postBody, Authorize.class);
-			log.debug("Streamlabs: Attempting to retrieve streamlabs OAuth token.");
+			ResponseEntity<Authorize> responseObject = 
+					restTemplate.exchange(builder.build().toUri(), HttpMethod.POST, 
+					null, Authorize.class);
+			Authorize responseBody = responseObject.getBody();
+			log.debug("Twitch: Attempting to retrieve twitch OAuth token.");
 
 			OAuthCredential auth = new OAuthCredential();
-			auth.setToken(responseObject.getAccessToken());
-			auth.setRefreshToken(responseObject.getRefreshToken());
-			auth.setType(responseObject.getTokenType());
+			auth.setToken(responseBody.getAccessToken());
+			auth.setRefreshToken(responseBody.getRefreshToken());
+			auth.setType(responseBody.getTokenType());
 			Calendar calendar = Calendar.getInstance();
-			calendar.add(Calendar.SECOND, responseObject.getExpiresIn().intValue());
+			calendar.add(Calendar.SECOND, responseBody.getExpiresIn().intValue());
 			auth.setTokenExpiresAt(calendar);
-			auth.getOAuthScopes().addAll(responseObject.getScope());
+			auth.getOAuthScopes().addAll(responseBody.getScope());
 			return auth;
 		} 
 		catch (RestException restException) 
