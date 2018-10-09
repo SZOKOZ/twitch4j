@@ -151,6 +151,8 @@ public class TwitchClient {
 	 */
 	private final ModuleLoader moduleLoader = new ModuleLoader(this);
 
+	private boolean AutoStartMessaging = false;
+
 	/**
 	 * Class Constructor - Creates a new TwitchClient Instance for the provided app.
 	 * <p>
@@ -260,6 +262,11 @@ public class TwitchClient {
 	 */
 	@Deprecated
 	public void connect() {
+		if (!AutoStartMessaging)
+		{
+			System.out.println("Automatic IRC Connection Disabled.");
+			return;
+		}
 		getMessageInterface().connect();
 	}
 
@@ -276,6 +283,14 @@ public class TwitchClient {
 						+ "&scope=%s&state=%s", 
 				authEndpointUri, clientId, twitchRedirectUri, 
 				Scope.join(scope), OAuthServer.DEFAULT_CSRF);
+		for (Scope scp: scope)
+		{
+			if (scp == Scope.CHAT_LOGIN)
+			{
+				AutoStartMessaging = true;
+				break;
+			}
+		}
 		Desktop desktop = java.awt.Desktop.getDesktop();
 		URI uri;
 		try 
